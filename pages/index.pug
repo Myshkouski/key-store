@@ -1,0 +1,23 @@
+v-content
+    v-container.fill-height(fluid='')
+        v-row(justify='center')
+            v-col.spread
+                v-data-table.elevation-1(
+                    v-model="selected"
+                    :headers="headers"
+                    :items="items"
+                    :single-select="false"
+                    item-key="name"
+                    show-select
+                )
+                    template(v-slot:item.secret='{ item }')
+                        v-text-field(
+                            v-model="item.secret"
+                            :type="item.show ? 'text' : 'password'"
+                            :name="item.id"
+                        )
+                            template(v-slot:append-outer)
+                                v-btn(text icon @click="item.show = !item.show")
+                                    v-icon {{ item.show ? 'mdi-eye' : 'mdi-eye-off' }}
+                                v-btn(text icon @click="copy(item.secret)")
+                                    v-icon mdi-content-copy
