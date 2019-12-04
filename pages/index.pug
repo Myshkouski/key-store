@@ -1,23 +1,42 @@
 v-content
-    v-container.fill-height(fluid='')
-        v-row(justify='center')
-            v-col.spread
-                v-data-table.elevation-1(
-                    v-model="selected"
-                    :headers="headers"
-                    :items="items"
-                    :single-select="false"
-                    item-key="name"
-                    show-select
-                )
-                    template(v-slot:item.secret='{ item }')
-                        v-text-field(
-                            v-model="item.secret"
-                            :type="item.show ? 'text' : 'password'"
-                            :name="item.id"
-                        )
-                            template(v-slot:append-outer)
-                                v-btn(text icon @click="item.show = !item.show")
-                                    v-icon {{ item.show ? 'mdi-eye' : 'mdi-eye-off' }}
-                                v-btn(text icon @click="copy(item.secret)")
-                                    v-icon mdi-content-copy
+    v-snackbar(
+        v-model="snackbar"
+        :timeout="snackbarTimeout"
+    ) Copied!
+    v-container.fill-height
+        v-col
+            v-data-table.elevation-1(
+                v-model="selected"
+                :headers="headers"
+                :items="items"
+                :single-select="false"
+                item-key="id"
+                show-select
+            )
+                template(v-slot:top)
+                    v-toolbar(flat)
+                        v-spacer
+                        //- v-text-field(
+                        //-     label="Search"
+                        //-     single-line
+                        //-     hide-details
+                        //- )
+                        v-btn.mb-2(
+                            color="primary"
+                            dark
+                            @click.stop="newItem = { id: null, name: '[name]', secret: '[secret]', edit: true, show: false }"
+                        ) New Item
+                
+                template(v-slot:item.actions='{ item }')
+                    ActionTooltip(@click="item.edit ? (item.secret = getRandomString()) : (item.show = !item.show)" :icon="item.edit ? 'lock-question' : item.show ? 'eye' : 'eye-off'") {{ item.edit ? 'Random' : item.show ? 'Hide' : 'Show' }}
+                    ActionTooltip(@click="itemToEdit = cloneDeep(item), item.edit = !item.edit, item.show = false" :icon="item.edit ? 'cancel' : 'pencil'") {{ item.edit ? 'Cancel' : 'Edit'}}
+                    ActionTooltip(@click="item.edit ? (update(item), item.edit = false) : (copy(item.secret), snackbar = true)" :icon="item.edit ? 'content-save' : 'content-copy'") {{ item.edit ? 'Save' : 'Copy to clipboard' }}
+                template(v-slot:item.name='{ item }')
+                    v-text-field(
+                        v-model="item.name"
+                        type="text"
+                        :name="item.id"
+                        :disabled="!item.edit"
+                    )
+                template(v-slot:item.secret='{ item }')
+                    Secret(:item="item" @update:password="item.secret = $event.password, item.iv = $event.iv")
