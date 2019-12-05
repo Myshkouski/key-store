@@ -17,6 +17,12 @@ export const plugins = [
     // },
 
     async store => {
-        console.log(await store.dispatch('credentials/init', { password: '140896' }))
+        // if (!(await store.dispatch('credentials/check'))) {
+            await store.dispatch('credentials/init', { password: '140896' })
+        // }
+
+        await store.dispatch('credentials/importSecretKey', {
+            password: '140896', timeout: '30s'
+        })
     }
 ]

@@ -11,9 +11,7 @@ export default {
     },
 
     computed: {
-        ...mapState('master-key', ['key']),
-        ...mapGetters('secrets', ['encryptedPrivateKey', 'publicKey']),
-        ...mapGetters('master-key', ['salt']),
+        ...mapState('credentials', ['secretKey']),
         placeholder() {
             let placeholder = ''
             for(let i = this.item.length;i--;) {
@@ -36,20 +34,24 @@ export default {
 
     methods: {
         async decrypt(cipherText, iv) {
-            if(this.key) {
-                try {
-                    return await decrypt(cipherText, iv, this.key)
-                } catch(error) {
-                    console.error(error)
-                }
+            if (!this.secretKey) {
+                await this.$store.dispatch('credentials/importSecretKey', { password: '140896', timeout: '1m' })
+            }
+            
+            try {
+                return await decrypt(cipherText, iv, this.secretKey)
+            } catch (error) {
+                console.error(error)
             }
         },
 
         async encrypt(password) {
-            if(this.key) {
-                const { cipherText, iv, secretKey } = await encrypt(password, { masterKey: this.key, salt: this.salt, privateKey: this.encryptedPrivateKey, publicKey: this.publicKey })
-                this.$emit('update:password', { password: cipherText, iv, secretKey })
+            if (!this.secretKey) {
+                await this.$store.dispatch('credentials/importSecretKey', { password: '140896', timeout: '1m' })
             }
+
+            const { cipherText, iv, secretKey } = await encrypt(password, { masterKey: this.key, salt: this.salt, privateKey: this.encryptedPrivateKey, publicKey: this.publicKey })
+            this.$emit('update:password', { password: cipherText, iv, secretKey })
 
         }
     },
