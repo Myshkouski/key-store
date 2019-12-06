@@ -3,7 +3,7 @@ import Router from 'vue-router'
 import { interopDefault } from './utils'
 import scrollBehavior from './router.scrollBehavior.js'
 
-const _daf2bba6 = () => interopDefault(import('..\\pages\\master-key\\index.vue' /* webpackChunkName: "pages_master-key_index" */))
+const _04303766 = () => interopDefault(import('..\\pages\\password\\index.vue' /* webpackChunkName: "pages_password_index" */))
 const _664635be = () => interopDefault(import('..\\pages\\index.vue' /* webpackChunkName: "pages_index" */))
 
 Vue.use(Router)
@@ -16,9 +16,9 @@ export const routerOptions = {
   scrollBehavior,
 
   routes: [{
-    path: "/master-key",
-    component: _daf2bba6,
-    name: "master-key"
+    path: "/password",
+    component: _04303766,
+    name: "password"
   }, {
     path: "/",
     component: _664635be,
