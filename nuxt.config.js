@@ -4,7 +4,8 @@ dotenv.config()
 
 export default {
     build: {
-        parallel: true,
+        publicPath: process.env.PUBLIC_PATH,
+        // parallel: true,
         // cache: true,
         // optimizeCSS: true,
         extractCSS: true,
@@ -33,6 +34,10 @@ export default {
 
     generate: {
         dir: 'docs'
+    },
+
+    router: {
+        base: process.env.ROUTER_BASE
     },
 
     manifest: {
