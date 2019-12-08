@@ -1,0 +1,28 @@
+{
+    "devDependencies": {
+        "@nuxtjs/vuetify": "^1.9.1",
+        "clipboard-copy": "^3.1.0",
+        "dexie": "^2.0.4",
+        "fibers": "^4.0.2",
+        "lodash": "^4.17.15",
+        "node-sass": "^4.13.0",
+        "pug": "^2.0.4",
+        "pug-plain-loader": "^1.0.0",
+        "sass-loader": "^8.0.0",
+        "vue": "^2.6.10",
+        "vue-template-compiler": "^2.6.10",
+        "webpack": "^4.41.2"
+    },
+    "dependencies": {
+        "@nuxtjs/pwa": "^3.0.0-beta.19",
+        "dotenv": "^8.2.0",
+        "ms": "^2.1.2",
+        "nuxt": "^2.10.2",
+        "serve": "^11.2.0"
+    },
+    "scripts": {
+        "nuxt:dev": "cross-env NODE_ENV=development nuxt --spa",
+        "nuxt:gen": "cross-env NODE_ENV=production nuxt generate --spa",
+        "serve": "serve -l 3000"
+    }
+}

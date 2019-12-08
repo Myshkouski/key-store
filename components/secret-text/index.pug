@@ -1,0 +1,9 @@
+div
+    v-text-field(
+        :value="item.show ? password : placeholder"
+        @change="password = $event"
+        :type="item.show && !item.edit ? 'text' : 'password'"
+        :name="item.id"
+        :disabled="!item.edit"
+        :loading="!password && item.show"
+    )

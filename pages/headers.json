@@ -1,0 +1,20 @@
+[
+    {
+        "text": "Name",
+        "align": "left",
+        "sortable": true,
+        "value": "name"
+    },
+    {
+        "text": "Secret",
+        "align": "left",
+        "sortable": false,
+        "value": "secret"
+    },
+    {
+        "text": "Actions",
+        "align": "left",
+        "sortable": false,
+        "value": "actions"
+    }
+]

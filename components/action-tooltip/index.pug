@@ -1,0 +1,5 @@
+v-tooltip(bottom)
+    slot
+    template(v-slot:activator="{ on }")
+        v-btn(text icon v-on="on" @click="$emit('click')")
+            v-icon(small) mdi-{{ icon }}
