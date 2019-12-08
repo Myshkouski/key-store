@@ -29,15 +29,27 @@ export default {
                     this.password = await this.decrypt(item.secret, item.iv)
                 }
             }
+        },
+
+        // password(password) {
+        //     if(password) {
+        //         this.encrypt(password)
+        //     }
+        // },
+
+        secretKey(value) {
+            if(value) {
+                this.$emit('secret-key:imported')
+            }
         }
     },
 
     methods: {
         async decrypt(cipherText, iv) {
             if (!this.secretKey) {
-                await this.$store.dispatch('credentials/importSecretKey', { password: '140896', timeout: '1m' })
+                await this.waitForPassword()
             }
-            
+
             try {
                 return await decrypt(cipherText, iv, this.secretKey)
             } catch (error) {
@@ -47,12 +59,20 @@ export default {
 
         async encrypt(password) {
             if (!this.secretKey) {
-                await this.$store.dispatch('credentials/importSecretKey', { password: '140896', timeout: '1m' })
+                await this.waitForPassword()
             }
 
-            const { cipherText, iv, secretKey } = await encrypt(password, { masterKey: this.key, salt: this.salt, privateKey: this.encryptedPrivateKey, publicKey: this.publicKey })
-            this.$emit('update:password', { password: cipherText, iv, secretKey })
+            const { cipherText, iv } = await encrypt(password, this.secretKey)
+            
+            this.$emit('update:password', { password: cipherText, iv })
+        },
 
+        async waitForPassword() {
+            this.$emit('update:need-key')
+            
+            return new Promise((resolve, reject) => {
+                this.$on('secret-key:imported', resolve)
+            })
         }
     },
 

@@ -1,10 +1,5 @@
 import {
     createCredentials,
-    DERIVE_OPTIONS,
-    AES_GCM_OPTIONS,
-    generateSecretKey,
-    _createPassphrase,
-    generateKeyPair,
     unwrapSecretKey
 } from '../lib/crypto'
 
@@ -46,8 +41,11 @@ class Storage {
     }
 }
 
-const ls = new Storage(window.localStorage)
-const ss = new Storage(window.sessionStorage) 
+let ls
+
+if(process.browser) {
+    ls = new Storage(window.localStorage)
+}
 
 export const mutations = {
     // passphrase(state, { salt, options }) {
@@ -131,7 +129,7 @@ export const actions = {
         const secret = await unwrapSecretKey(credentials)
 
         if(timeout) {
-            commit('timeout', setTimeout(commit.bind(null, 'clear'), ms(timeout)))
+            commit('timeout', setTimeout(() => commit('clear'), ms(timeout)))
         }
 
         commit('secretKey', secret)

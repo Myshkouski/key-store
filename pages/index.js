@@ -2,55 +2,53 @@ import { mapState } from 'vuex'
 import copy from 'clipboard-copy'
 // import deepEqual from 'lodash/isEqual'
 import cloneDeep from 'lodash/cloneDeep'
+// import ms from 'ms'
+
 import {
+    decrypt,
     encrypt,
-    _decrypt,
-    createMasterKey,
-    getRandomString
+    getRandomPassword
 } from '~/lib/crypto'
 
-import Secret from '~/components/secret-text'
+import PasswordInput from '~/components/password-input'
+// import Secret from '~/components/secret-text'
 import ActionTooltip from '~/components/action-tooltip'
+
+import headers from './headers.json'
 
 export default {
     components: {
-        Secret,
-        ActionTooltip
+        // Secret,
+        ActionTooltip,
+        PasswordInput
     },
 
     data() {
         return {
+            overlay: false,
+            passwordMessage: null,
             snackbar: false,
+            snackbarText: '',
             snackbarTimeout: 2000,
             selected: [],
-            headers: [
-                {
-                    text: 'Name',
-                    align: 'left',
-                    sortable: true,
-                    value: 'name'
-                },
-                {
-                    text: 'Secret',
-                    align: 'left',
-                    sortable: false,
-                    value: 'secret'
-                },
-                {
-                    text: 'Actions',
-                    align: 'left',
-                    sortable: false,
-                    value: 'actions'
-                }
-            ],
+            headers,
             newItem: null,
             itemToEdit: null
         }
     },
 
     computed: {
+        ...mapState('credentials', ['secretKey']),
         ...mapState({
-            storedItems: state => state.secrets.storedItems.map(item => Object.assign({ edit: false, show: false }, item))
+            storedItems: state => {
+                return state.secrets.storedItems.map(item => {
+                    return Object.assign({
+                        decryptedSecret: null,
+                        edit: false,
+                        show: false
+                    }, item)
+                })
+            }
         }),
 
         items() {
@@ -67,34 +65,88 @@ export default {
     methods: {
         // deepEqual,
         cloneDeep,
-        copy,
-        getRandomString,
+        async copy(item) {
+            await this.requestPassword()
+
+            copy(await this.decrypt(item.secret, item.iv))
+
+            this.snackbarText = 'Copied!'
+            this.snackbar = true
+        },
+        getRandomPassword,
         async create(item) {
+            console.log('create', arguments)
+
+            await this.requestPassword()
             // name,iv,secret,length
             await this.$store.dispatch('secrets/create', { name, iv, secret, length: 0 })
         },
+
+        async onPasswordInput(password) {
+            try {
+                await this.$store.dispatch('credentials/importSecretKey', {
+                    password, timeout: '30s'
+                })
+
+                this.passwordMessage = 'Success!'
+
+                this.$emit('password:ready')
+
+                this.snackbarText = 'Success!'
+                this.snackbar = true
+                this.overlay = false
+            } catch(error) {
+                this.passwordMessage = error.message
+            }
+        },  
         
         async update(item) {
-            const { id, name, iv, secret } = item
+            // console.log('update', arguments)
+
+            await this.requestPassword()
+
+            const { id, name, decryptedSecret } = item
+            const { cipherText: secret, iv } = await encrypt(decryptedSecret, this.secretKey)
 
             if(!id) {
-                await this.$store.dispatch('secrets/create', { name, iv, secret, length: 0 })
+                await this.$store.dispatch('secrets/create', { name, iv, secret, length: decryptedSecret.length })
             } else {
-                await this.$store.dispatch('secrets/update', { id, name, iv, secret, length: 0 })
+                await this.$store.dispatch('secrets/update', { id, name, iv, secret, length: decryptedSecret.length })
             }
 
             this.newItem = null
+        },
+
+        async toggle(item) {
+            // console.log('toggle', item)
+            item.show = !item.show
+
+            if(item.show) {
+                item.decryptedSecret = await this.decrypt(item.secret, item.iv, this.secretKey)
+            } else {
+                item.decryptedSecret = null
+            }
+        },
+
+        async decrypt(cipherText, iv) {
+            await this.requestPassword()
+
+            try {
+                return await decrypt(cipherText, iv, this.secretKey)
+            } catch (error) {
+                console.error(error)
+            }
+        },
+
+        async requestPassword() {
+            if (!this.secretKey) {
+                this.overlay = true
+
+                return new Promise((resolve, reject) => {
+                    this.$on('password:ready', resolve)
+                    this.$on('password:error', reject)
+                })
+            }
         }
-    },
-
-    async mounted() {
-        // const password = '01091996'
-        // const masterKey = await createMasterKey(password)
-        // const encrypted = await encrypt('some-text', {
-        //     masterKey,
-        //     salt: getRandomString(16)
-        // })
-
-        // console.log(encrypted)
     }
 }

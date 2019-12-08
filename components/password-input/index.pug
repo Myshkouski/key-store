@@ -1,0 +1,22 @@
+div
+    div.inline-box
+        div.inline-input(
+            v-for="(value, index) in keyArray" 
+            :key="index"
+        )
+            div.actual-text
+                span(v-if="showValue[index]") {{ keyArray[index] }}
+                span(v-else) {{ mask }}
+            v-text-field.number(
+                ref="inputs"
+                tabindex="0"
+                autocomplete="off"
+                type="number"
+                pattern="[0-9]"
+                :autofocus="!index"
+                :value="!showValue[index] ? null : keyArray[index]"
+                @input="onInput($event, index)"
+                @focus="onFocus(index)"
+                @blur="onBlur(index)"
+                @keydown="onKeydown($event, index)"
+            )

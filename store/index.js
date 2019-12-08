@@ -1,28 +1,26 @@
 
-export const plugins = [
-    // async store => {
-    //     const load = async () => {
-    //         store.commit('secrets/flush', await store.dispatch('secrets/getAll'))
-    //     }
-
-    //     store.subscribeAction({
-    //         after: async action => {
-    //             if (action == 'secrets/create') {
-    //                 await load()
-    //             }
-    //         }
-    //     })
-
-    //     await load()
-    // },
-
+export const plugins = process.browser ? [
     async store => {
-        // if (!(await store.dispatch('credentials/check'))) {
-            await store.dispatch('credentials/init', { password: '140896' })
-        // }
+            const load = async () => {
+                store.commit('secrets/flush', await store.dispatch('secrets/import'))
+            }
 
-        await store.dispatch('credentials/importSecretKey', {
-            password: '140896', timeout: '30s'
-        })
-    }
-]
+            // store.subscribeAction({
+            //     after: async action => {
+            //         if (action == 'secrets/create') {
+            //             await load()
+            //         }
+            //     }
+            // })
+
+            await load()
+        },
+
+        async store => {
+            if (!(await store.dispatch('credentials/check'))) {
+                // await store.dispatch('credentials/init', {
+                //     password: '140896'
+                // })
+            }
+        }
+] : []

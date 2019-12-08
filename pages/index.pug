@@ -2,7 +2,16 @@ v-content
     v-snackbar(
         v-model="snackbar"
         :timeout="snackbarTimeout"
-    ) Copied!
+    ) {{ snackbarText }}
+    v-overlay(:value="overlay")
+        v-btn(
+            icon
+            @click="overlay = false"
+        )
+            v-icon mdi-close
+        p(v-show="!!passwordMessage") {{ passwordMessage }}
+        PasswordInput(@change="onPasswordInput")
+
     v-container.fill-height
         v-col
             v-data-table.elevation-1(
@@ -28,15 +37,23 @@ v-content
                         ) New Item
                 
                 template(v-slot:item.actions='{ item }')
-                    ActionTooltip(@click="item.edit ? (item.secret = getRandomString()) : (item.show = !item.show)" :icon="item.edit ? 'lock-question' : item.show ? 'eye' : 'eye-off'") {{ item.edit ? 'Random' : item.show ? 'Hide' : 'Show' }}
+                    ActionTooltip(@click="item.edit ? (item.decryptedSecret = getRandomPassword(8)) : (toggle(item))" :icon="item.edit ? 'lock-question' : item.show ? 'eye' : 'eye-off'") {{ item.edit ? 'Random' : item.show ? 'Hide' : 'Show' }}
                     ActionTooltip(@click="itemToEdit = cloneDeep(item), item.edit = !item.edit, item.show = false" :icon="item.edit ? 'cancel' : 'pencil'") {{ item.edit ? 'Cancel' : 'Edit'}}
-                    ActionTooltip(@click="item.edit ? (update(item), item.edit = false) : (copy(item.secret), snackbar = true)" :icon="item.edit ? 'content-save' : 'content-copy'") {{ item.edit ? 'Save' : 'Copy to clipboard' }}
+                    ActionTooltip(@click="item.edit ? (update(item), item.edit = false) : (copy(item))" :icon="item.edit ? 'content-save' : 'content-copy'") {{ item.edit ? 'Save' : 'Copy to clipboard' }}
                 template(v-slot:item.name='{ item }')
                     v-text-field(
-                        v-model="item.name"
                         type="text"
+                        v-model="item.name"
                         :name="item.id"
                         :disabled="!item.edit"
                     )
                 template(v-slot:item.secret='{ item }')
-                    Secret(:item="item" @update:password="item.secret = $event.password, item.iv = $event.iv")
+                    v-text-field(
+                        :value="(item.show && !!item.decryptedSecret) ? item.decryptedSecret : null"
+                        placeholder="######"
+                        :type="item.show && !item.edit ? 'text' : 'password'"
+                        :name="item.id"
+                        :disabled="!item.edit"
+                        :loading="!item.decryptedSecret && item.show"
+                        @change="item.decryptedSecret = $event"
+                    )

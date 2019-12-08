@@ -1,12 +1,16 @@
 import Dexie from 'dexie'
 
-const db = new Dexie('main')
-db.version(1).stores({
-    secrets: '++id,name,iv,secret,length'
-})
+let db, secretsTable, secretsCollection
 
-const secretsTable = db.table('secrets')
-const secretsCollection = secretsTable.toCollection()
+if(process.browser) {
+    db = new Dexie('main')
+    db.version(1).stores({
+        secrets: '++id,name,iv,secret,length'
+    })
+
+    secretsTable = db.table('secrets')
+    secretsCollection = secretsTable.toCollection()
+}
 
 export const state = () => ({
     storedItems: []
@@ -25,6 +29,16 @@ export const mutations = {
 
     push(state, item) {
         state.storedItems.push(item)
+    },
+
+    update(state, item) {
+        const { id } = item
+
+        const index = state.storedItems.findIndex(item => item.id == id)
+
+        if(~index) {
+            state.storedItems.splice(index, 1, item)
+        }
     }
 }
 
@@ -33,7 +47,7 @@ export const actions = {
         return await secretsCollection.keys()
     },
 
-    async getAll() {
+    async import() {
         return await secretsTable.toArray()
     },
 
@@ -43,13 +57,11 @@ export const actions = {
 
     async create(store, { name, secret, iv }) {
         const item = await secretsTable.add({ name, secret, iv })
-
-        console.log('created', item)
         store.commit('push', { name, secret, iv })
     },
 
     async update(store, { id, name, secret, iv }) {
         const item = await secretsTable.update(id, { name, secret, iv })
-        console.log('updated', item)
+        store.commit('update', item)
     }
 }
